@@ -1,58 +1,84 @@
-# Clean Architecture (.NET 10)
+# .NET 10 Clean Architecture Template
 
-ASP.NET Core solution scaffold using the Hybrid Clean Architecture conventions from the RxiFinTrack `aspnet-clean-architecture-skill`.
+ASP.NET Core Web API starter project ကို RxiFinTrack ရဲ့ `aspnet-clean-architecture-skill` နှင့် Hybrid Clean Architecture စည်းမျဉ်းများအတိုင်း ဖွဲ့စည်းထားပါတယ်။ `dotnet new` template အဖြစ်လည်း အသုံးပြုနိုင်ပါတယ်။
 
-This repository is also a local `dotnet new` template (`ca-hybrid`). Install it with `dotnet new install .`, then create a renamed solution with `dotnet new ca-hybrid --name MyFinanceApp --output ..\MyFinanceApp`.
-
-## Structure
-
-```text
-src/
-  CleanArchitecture.Domain/          # Entities, domain rules, audit and soft-delete contracts
-  CleanArchitecture.Application/     # IApplicationDbContext, DTOs, pagination, services, CQRS
-  CleanArchitecture.Infrastructure/  # EF Core DbContext, configurations, migrations, persistence DI
-  CleanArchitecture.Api/              # Controllers, middleware, API contracts, OpenAPI and Scalar
-```
-
-Dependencies point inward: Domain has no project references; Application references Domain; Infrastructure references Application and Domain; Api is the composition root and references Application and Infrastructure to wire the database.
-
-The `Banks` sample demonstrates simple master-data CRUD through an Application Service. The `Transactions` sample demonstrates CQRS for business operations using MediatR. Both use DTOs and the common `{ success, code, message, data }` response shape. List endpoints use `QueryParams` (`page` defaults to 1, `take` defaults to 20 and is capped at 100) and the shared pagination extension. Read queries use `AsNoTracking()` and project to response DTOs. Soft deletes are applied through EF Core global query filters; audit timestamps are assigned in the DbContext save pipeline.
-
-## Requirements
+## လိုအပ်ချက်များ
 
 - .NET 10 SDK
 
-## Run
+## Project ဖွဲ့စည်းပုံ
+
+```text
+src/
+  CleanArchitecture.Domain/          # Domain entities, business rules, audit နှင့် soft-delete
+  CleanArchitecture.Application/     # IApplicationDbContext, DTOs, services, CQRS, pagination
+  CleanArchitecture.Infrastructure/  # EF Core DbContext, configurations, migrations, interceptors
+  CleanArchitecture.Api/             # Controllers, middleware, API response, OpenAPI နှင့် Scalar
+```
+
+Dependency ဦးတည်ချက်က `Application -> Domain` နှင့် `Infrastructure -> Application + Domain` ဖြစ်ပါတယ်။ `Api` က application ကို infrastructure နဲ့ ချိတ်ဆက်ပေးတဲ့ composition root ဖြစ်ပါတယ်။ Repository Pattern နဲ့ Generic Repository မသုံးဘဲ EF Core ကို `IApplicationDbContext` ကတစ်ဆင့် အသုံးပြုထားပါတယ်။
+
+## Template အသုံးပြုနည်း
+
+ဒီ repository ရဲ့ root folder မှာ အောက်ပါ command တွေကို run လုပ်ပါ။
+
+```powershell
+dotnet new install .
+dotnet new ca-hybrid --name MyFinanceApp --output ..\MyFinanceApp
+```
+
+Project အသစ်ကိုဖန်တီးပြီးနောက် `MyFinanceApp` folder ထဲဝင်ပြီး run လုပ်ပါ။
+
+## လက်ရှိပါဝင်တဲ့ ဥပမာများ
+
+- **Banks** — ရိုးရှင်းတဲ့ master data CRUD ကို Application Service နဲ့ ကိုင်တွယ်ထားပါတယ်။
+- **Transactions** — business operation တွေကို MediatR CQRS command/query နဲ့ ခွဲထားပါတယ်။
+- **Pagination** — list endpoint တွေမှာ `page` (မူလ `1`), `take` (မူလ `20`, အများဆုံး `100`) နဲ့ optional `search` ကို သုံးနိုင်ပါတယ်။ `Skip`/`Take` ကို shared pagination extension တစ်နေရာတည်းမှာ စီမံထားပါတယ်။
+- **API response** — endpoint response တွေရဲ့ ပုံစံက `{ "success", "code", "message", "data" }` ဖြစ်ပါတယ်။
+- **EF Core** — read-only query တွေမှာ `AsNoTracking()` နှင့် DTO projection ကို သုံးထားပါတယ်။ Audit timestamps ကို `SaveChangesInterceptor` က သတ်မှတ်ပြီး soft delete ကို global query filter နဲ့ စစ်ထုတ်ပါတယ်။
+
+## Run လုပ်ရန်
+
+Solution root မှာ run ပါ။
 
 ```powershell
 dotnet restore
 dotnet run --project .\src\CleanArchitecture.Api
 ```
 
-Development starts with a SQLite database at `cleanarchitecture.db` in the solution root and creates the schema on first run. API docs are available at `/scalar/v1` and the OpenAPI document at `/openapi/v1.json`.
+Development မှာ SQLite database ကို `cleanarchitecture.db` အမည်နဲ့ solution root မှာ ဖန်တီးပြီး schema ကို ပထမဆုံး run ချိန်မှာ တည်ဆောက်ပေးပါတယ်။ API documentation ကို `/scalar/v1` မှာကြည့်နိုင်ပြီး OpenAPI document က `/openapi/v1.json` မှာ ရှိပါတယ်။
 
-## Build
+## Build လုပ်ရန်
 
 ```powershell
 dotnet build .\CleanArchitecture.sln
 ```
 
-## Database migrations
+## API ဥပမာ
 
-The starter uses `EnsureCreated` for a zero-setup development database. Before production use, switch startup initialization to EF Core migrations and create the initial migration, for example:
+Bank အသစ်ဖန်တီးရန် `POST /api/banks` ကို အောက်ပါ JSON နဲ့ ခေါ်ပါ။
+
+```json
+{
+  "code": "BANK01",
+  "name": "Example Bank"
+}
+```
+
+Bank စာရင်းယူရန် `GET /api/banks?page=1&take=20&search=example` ကို ခေါ်ပါ။ Transaction စာရင်းအတွက် `GET /api/transactions?page=1&take=20` ကို သုံးနိုင်ပါတယ်။
+
+## Feature အသစ်ထည့်ရန်
+
+- ရိုးရှင်းတဲ့ master data CRUD အတွက် `Application/Services/<Feature>` အောက်မှာ DTO, service interface နဲ့ implementation ထည့်ပါ။ EF Core query ကို `IApplicationDbContext` ကတစ်ဆင့် ခေါ်ပြီး controller ကို ပါးလွှာအောင်ထားပါ။
+- Workflow, state transition, သို့မဟုတ် report လို business logic ရှုပ်ထွေးတဲ့အခါ `Application/Features/<Feature>` အောက်မှာ command/query, handler နဲ့ validator ထည့်ပါ။ CQRS controller က `ISender.Send()` ကိုသာ ခေါ်ပါစေ။
+- Domain စည်းမျဉ်းတွေကို Domain layer ထဲမှာထားပြီး EF Core configuration နဲ့ persistence logic ကို Infrastructure layer ထဲမှာထားပါ။ EF entity တွေကို API response အဖြစ် တိုက်ရိုက်မပြန်ပါနဲ့။
+
+## Database migration
+
+Starter project က development အတွက် အလွယ်တကူ စတင်နိုင်ရန် `EnsureCreated` ကို သုံးထားပါတယ်။ Production အတွက် migration သုံးမယ်ဆိုရင် startup ရှိ `EnsureCreated` ကို migration initialization နဲ့ အစားထိုးပြီး အောက်ပါ command တွေ run ပါ။ `EnsureCreated` database ကို migrations နဲ့ တိုက်ရိုက်ပေါင်းသုံးလို့မရပါဘူး။
 
 ```powershell
+dotnet tool install --global dotnet-ef --version 10.0.12
 dotnet ef migrations add InitialCreate --project .\src\CleanArchitecture.Infrastructure --startup-project .\src\CleanArchitecture.Api --output-dir Persistence/Migrations
 dotnet ef database update --project .\src\CleanArchitecture.Infrastructure --startup-project .\src\CleanArchitecture.Api
 ```
-
-Install the matching EF CLI tool once with `dotnet tool install --global dotnet-ef --version 10.0.12` if it is not already available.
-
-Do not combine `EnsureCreated` databases with migrations; recreate the development database after switching.
-
-## Add a feature
-
-- For straightforward reference/master data, add DTOs, an interface and implementation under `Application/Services/<Feature>`; depend on `IApplicationDbContext` and keep its controller thin.
-- For workflows, state transitions, or reports, add request/handler/validator files under `Application/Features/<Feature>` and have the controller call `ISender.Send()`.
-- Put entity invariants in Domain, EF configuration in Infrastructure, and keep API request/response contracts separate from EF entities.
-
