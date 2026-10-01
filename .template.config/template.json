@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "CleanArchitecture",
+  "classifications": ["Web", "API", "Clean Architecture"],
+  "identity": "CleanArchitecture.Hybrid.Solution",
+  "name": ".NET 10 Hybrid Clean Architecture Solution",
+  "shortName": "ca-hybrid",
+  "sourceName": "CleanArchitecture",
+  "preferNameDirectory": true,
+  "tags": {
+    "language": "C#",
+    "type": "solution"
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "exclude": [
+            "**/.vs/**",
+            "**/bin/**",
+            "**/obj/**",
+            "artifacts/**",
+            ".template-smoke/**",
+            "tests/**",
+            "*.db",
+            "*.db-shm",
+            "*.db-wal"
+          ]
+        }
+      ]
+    }
+  ]
+}
