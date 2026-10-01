@@ -48,6 +48,23 @@ dotnet run --project .\src\CleanArchitecture.Api
 
 Development မှာ SQLite database ကို `cleanarchitecture.db` အမည်နဲ့ solution root မှာ ဖန်တီးပြီး schema ကို ပထမဆုံး run ချိန်မှာ တည်ဆောက်ပေးပါတယ်။ API documentation ကို `/scalar/v1` မှာကြည့်နိုင်ပြီး OpenAPI document က `/openapi/v1.json` မှာ ရှိပါတယ်။
 
+## Frontend ချိတ်ဆက်နိုင်သည့် နည်းလမ်းများ
+
+ဒီ project မှာ REST API ပါဝင်ပြီး frontend ကို သီးခြား project အဖြစ် ချိတ်ဆက်နိုင်ပါတယ်။ JSON နဲ့ HTTP request ပို့နိုင်တဲ့ frontend မည်သည့်နည်းပညာမဆို အသုံးပြုနိုင်ပါတယ်။ ဥပမာများကတော့ **Angular**, **React** (သို့) **Next.js**, **Vue**, **Svelte**, **Blazor WebAssembly** တို့ဖြစ်ပါတယ်။ Mobile app လိုအပ်ရင် **Flutter** သို့မဟုတ် **React Native** ကနေလည်း API ကို ခေါ်နိုင်ပါတယ်။ ဒီ repository မှာ အဲဒီ frontend တွေကို ထည့်မပေးထားပါဘူး။
+
+API ကို `http://localhost:5115` မှာ run ထားချိန် frontend က `fetch`, `Axios`, Angular `HttpClient` စတဲ့ HTTP client နဲ့ endpoint တွေကို ခေါ်နိုင်ပါတယ်။ ဥပမာ —
+
+```javascript
+const response = await fetch("http://localhost:5115/api/banks?page=1&take=20");
+const result = await response.json();
+
+if (result.success) {
+  console.log(result.data.items);
+}
+```
+
+Frontend နဲ့ API ကို မတူတဲ့ origin/port မှာ run မယ်ဆိုရင် browser ရဲ့ CORS ကန့်သတ်ချက်ကြောင့် API ဘက်မှာ frontend origin ကို ခွင့်ပြုထားဖို့ လိုပါတယ်။ လက်ရှိ template မှာ CORS policy မသတ်မှတ်ရသေးတဲ့အတွက် frontend ရဲ့ development/production URL တွေနဲ့ကိုက်ညီအောင် `Program.cs` မှာ CORS ကို configure လုပ်ပါ။ API endpoint နဲ့ response schema တွေကို Scalar (`/scalar/v1`) သို့မဟုတ် OpenAPI (`/openapi/v1.json`) ကနေ ကြည့်ပြီး frontend ချိတ်ဆက်နိုင်ပါတယ်။
+
 ## Build လုပ်ရန်
 
 ```powershell
